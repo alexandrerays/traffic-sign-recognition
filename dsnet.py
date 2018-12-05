@@ -14,7 +14,7 @@ import utils as utils
 
 #Constants
 img_size = 64
-epoch_num = 1000
+epoch_num = 5000
 
 #PATHS
 ROOT_PATH = "/traffic"
@@ -23,7 +23,7 @@ test_data_dir = "datasets/BelgiumTS/Testing"
 
 #Loads image data
 images, labels = utils.load_data(train_data_dir)
-test_images, test_labels = utils.load_data(train_data_dir)
+test_images, test_labels = utils.load_data(test_data_dir)
 
 #Prints
 print("Unique Labels: {0}\nTotal Images: {1}".format(len(set(labels)), len(images)))
@@ -94,6 +94,17 @@ for i in range(epoch_num):
         csv_array[1][int(i/50)+4] = loss_value
         csv_array[2][int(i/50)+4] = accuracy
         csv_array[3][int(i/50)+4] = accuracy_train
+        if i % 1000 == 999:
+            predicted = session.run([predicted_labels], feed_dict={images_ph: test_images_resized})[0]
+            prediction_csv = np.empty([2, len(test_labels)])
+            prediction_csv[0] = test_labels
+            prediction_csv[1] = predicted
+            np.savetxt("predictions_" + str(i) + "_test.csv", prediction_csv.T, delimiter=",", fmt='%10.5f')
+            predicted_train = session.run([predicted_labels], feed_dict={images_ph: images_resized})[0]
+            prediction_train_csv = np.empty([2, len(labels)])
+            prediction_train_csv[0] = labels
+            prediction_train_csv[1] = predicted_train
+            np.savetxt("predictions_" + str(i) + "_train.csv", prediction_train_csv.T, delimiter=",", fmt='%10.5f')
 tempo_final = time()
 tempo_treinamento = tempo_final - tempo_inicial
 print('Tempo de Training:', tempo_treinamento)
@@ -109,12 +120,5 @@ tempo_execucao = tempo_final - tempo_inicial
 print('Tempo de processamento:', tempo_execucao)
 csv_array[1][2] = tempo_execucao
 
-np.savetxt("dsnet2.csv", csv_array.T, delimiter=",", fmt='%10.5f')
-
-prediction_csv = np.empty([2, len(test_labels)])
-prediction_csv[0] = test_labels
-prediction_csv[1] = predicted
-
-np.savetxt("predictions2.csv", prediction_csv.T, delimiter=",", fmt='%10.5f')
-
+np.savetxt("dsnet3.csv", csv_array.T, delimiter=",", fmt='%10.5f')
 session.close()
